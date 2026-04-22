@@ -186,7 +186,6 @@ const personalityDetails = {
     '人类观测师': '你是人群中的隐形观察者。你不一定参与每一场对话，但你一定在听。你对身边人的动向了如指掌——谁和谁在一起了、谁最近状态不好、谁在偷偷卷——你都看在眼里，但从不主动传播。你喜欢分析人的行为动机，把观察人类当作一种乐趣。你不急于表达，不急于站队，像一个田野调查者，记录着科广人类图鉴的每一个样本。有人说你城府深，其实你只是喜欢看，不喜欢演。',
     '深夜哲人': '你的生物钟和大多数人有时差。白天你迷迷糊糊，上课靠咖啡续命。但一到深夜，你的大脑就像被按下了开关，开始高速运转。你会在凌晨思考人生的意义、宇宙的起源、明天早八吃什么——虽然最后一个问题通常没有答案。你的朋友圈深夜小作文是固定栏目，你的网易云年度总结总是凌晨时段霸榜。你觉得深夜的世界更安静，也更真实。白天太吵了，只有夜晚才听得见自己。',
     '预言家': '你有一种说不清的预判能力。别人还在纠结选A还是选B，你已经隐约感觉到哪个方向是对的。你不是神棍，但你确实比大多数人更早看到趋势。而且你不只是看，你还会下场。如果事情的发展不如你预期，你不会坐等，而是主动入局去改写剧本。这种“我看准了，我就去做，做不成我就硬做”的劲头，让你在关键节点总能把握住机会。有人说你运气好，你笑笑。运气是弱者的借口，你是自己命运的编剧。',
-    '假面影帝': '你是行走的“人格切换大师”。在不同的场合、不同的人群面前，你总能精准地拿出最合适的那张面孔。在教授面前是勤勉好学的乖学生，在朋友面前是疯癫毒舌的吐槽役，在学弟学妹面前是靠谱稳重的过来人。你不是故意要骗谁，只是那些面具戴得太久了，久到你自己都快分不清哪一个才是真正的自己。有时候深夜你也会想，这么多张脸，到底哪一张才是出厂设置？但第二天醒来，你还是会条件反射般地根据当天的日程表戴上对应的面具。你享受这种在不同角色间游刃有余的感觉，也享受人群散去后独处时把面具摘下的那片刻喘息。假面不是虚伪，而是你保护自己、适应世界的生存策略。影帝也不是贬义，是对你高超社交适应能力的最高赞誉。',
     '摆渡人': '你有一种天然的治愈力。朋友难过时第一个想到的是你，遇到困惑时第一个找的也是你。你耐心倾听，温柔回应，给人力量。你像一个摆渡人，把一个个困在情绪此岸的人送到彼岸，然后自己回到船上，继续等待下一个需要过河的人。你不求回报，也不把自己当成救世主。你只是觉得，能帮一把是一把。但有时候你也会累，也会想，谁来做你的摆渡人呢。',
     '弄潮者': '你对潮流有一种天然的嗅觉。新的App、新的热点、新的机会，你总是比大多数人更早发现。你不喜欢落后于时代，你喜欢站在浪潮之巅。但你不是盲目跟风，你有自己的判断——什么东西值得追，什么东西只是昙花一现。你享受“比别人先看到”的那种感觉，也享受在浪潮中冲浪的快感。有人说你喜新厌旧，你说这叫拥抱变化。',
     '孤勇者': '你有一种不合群的坚定。当大家都在追逐热门方向时，你选择了自己想走的路。当大家都在抱团取暖时，你选择了一个人上路。不是不合群，是你心里有比合群更重要的事。你知道这条路不好走，但你更知道不走会后悔。你不需要别人的理解和掌声，你只需要知道自己没有背叛自己。孤勇者不是没有恐惧，是带着恐惧依然往前走的人。',
@@ -205,38 +204,49 @@ function getPersonalityDetail(name) {
 
 // ---------- 匹配算法（核心维度 + 特殊规则亲和加分） ----------
 // ---------- 匹配算法（核心维度 + 特殊规则亲和加分，公平处理不同数量核心维度） ----------
+// ---------- 匹配算法（余弦相似度 + 核心维度聚焦 + 特殊规则亲和） ----------
 function findBestMatch(userVector, userAnswers, threshold = 60, useCoreDimensions = true) {
-    const distances = [];
-    const affinityBoost = 0.3; // 每条规则匹配后，距离乘以 (1 - 0.3) = 0.7
+    const results = [];
+    const affinityBoost = 0.15; // 每条规则提升相似度15%（相对值）
 
     for (const [name, vector] of Object.entries(personalityVectors)) {
-        // 1. 计算核心维度的均方根距离 (RMSD)
-        let sumSq = 0;
-        let effectiveDimCount = 14;
-
+        let coreDims = null;
         if (useCoreDimensions && personalityCoreDimensions[name]) {
-            const coreDims = personalityCoreDimensions[name];
-            effectiveDimCount = coreDims.length;
-
+            coreDims = personalityCoreDimensions[name];
+        }
+        
+        // 1. 计算余弦相似度（基于核心维度）
+        let dotProduct = 0;
+        let normUser = 0;
+        let normVector = 0;
+        
+        if (coreDims && coreDims.length > 0) {
             for (let dim of coreDims) {
-                const diff = userVector[dim] - vector[dim];
-                sumSq += diff * diff;
+                const u = userVector[dim];
+                const v = vector[dim];
+                dotProduct += u * v;
+                normUser += u * u;
+                normVector += v * v;
             }
         } else {
             // 全维度
             for (let i = 0; i < userVector.length; i++) {
-                const diff = userVector[i] - vector[i];
-                sumSq += diff * diff;
+                const u = userVector[i];
+                const v = vector[i];
+                dotProduct += u * v;
+                normUser += u * u;
+                normVector += v * v;
             }
         }
-
-        // 原始欧氏距离
-        let rawDistance = Math.sqrt(sumSq);
         
-        // 转换为平均维度差异 (RMSD)，消除维度数量影响
-        let normalizedDistance = rawDistance / Math.sqrt(effectiveDimCount);
-
-        // 2. 特殊规则亲和：匹配的规则数量越多，距离打折越多
+        let cosineSimilarity = 0;
+        if (normUser > 0 && normVector > 0) {
+            cosineSimilarity = dotProduct / (Math.sqrt(normUser) * Math.sqrt(normVector));
+        }
+        // 余弦值在[0,1]之间（因为分数非负），直接转为百分比
+        let similarity = cosineSimilarity * 100;
+        
+        // 2. 特殊规则亲和：匹配的规则越多，相似度提升越多
         const rulesConfig = personalitySpecialRules[name];
         let matchedRuleCount = 0;
         if (rulesConfig && userAnswers) {
@@ -252,61 +262,44 @@ function findBestMatch(userVector, userAnswers, threshold = 60, useCoreDimension
                 if (ruleMatched) matchedRuleCount++;
             }
         }
-
-        // 应用折扣：每条规则让归一化距离打七折
+        
+        // 每条匹配规则让相似度增加 (affinityBoost * 100) 个百分点，但不超过100
         if (matchedRuleCount > 0) {
-            normalizedDistance = normalizedDistance * Math.pow(1 - affinityBoost, matchedRuleCount);
+            similarity = Math.min(100, similarity * (1 + affinityBoost * matchedRuleCount));
         }
-
-        // 最大可能平均差异为 2（每个维度差异最大2）
-        const maxPossibleNormalizedDist = 2.0;
-
-        distances.push({
+        
+        results.push({
             name,
-            rawDistance,
-            normalizedDistance,
-            maxPossibleDist: maxPossibleNormalizedDist,
+            similarity: parseFloat(similarity.toFixed(1)),
+            cosine: cosineSimilarity,
             matchedRuleCount,
-            effectiveDimCount
+            coreDimCount: coreDims ? coreDims.length : 14
         });
     }
-
-    // 按归一化距离从小到大排序
-    distances.sort((a, b) => a.normalizedDistance - b.normalizedDistance);
-
-    // 生成前三名，计算相似度（基于归一化距离）
-    const topMatches = distances.slice(0, 3).map(item => {
-        const rawSimilarity = (1 - item.normalizedDistance / item.maxPossibleDist) * 100;
-        const similarity = Math.max(0, Math.min(100, parseFloat(rawSimilarity.toFixed(1))));
-        return {
-            name: item.name,
-            distance: item.normalizedDistance,      // 输出归一化距离
-            rawDistance: item.rawDistance,
-            similarity: similarity,
-            matchedRules: item.matchedRuleCount,
-            dimCount: item.effectiveDimCount
-        };
-    });
-
+    
+    // 按相似度从高到低排序
+    results.sort((a, b) => b.similarity - a.similarity);
+    
+    const topMatches = results.slice(0, 3);
+    
     let bestMatch = topMatches[0].name;
     const bestSimilarity = topMatches[0].similarity;
-
-    // 兜底：相似度过低则判定为自定义
+    
+    // 兜底：相似度过低判定为自定义
     if (bestSimilarity < threshold) {
         bestMatch = '自定义';
         topMatches.unshift({
             name: '自定义',
-            distance: 0,
-            rawDistance: 0,
             similarity: bestSimilarity,
-            matchedRules: 0,
-            dimCount: 0
+            cosine: 0,
+            matchedRuleCount: 0,
+            coreDimCount: 0
         });
     }
-
+    
     return {
         bestMatch,
-        minDistance: topMatches[0]?.distance || 0,
+        minDistance: 1 - topMatches[0].cosine, // 兼容旧字段
         topMatches
     };
 }
