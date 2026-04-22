@@ -1,0 +1,364 @@
+/* ========== 全局重置 ========== */
+/* 清除所有元素默认的内外边距，让盒子模型更好计算 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 页面背景和字体 */
+body {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(145deg, #f7f9fc 0%, #e9eef4 100%);
+    min-height: 100vh;
+}
+
+/* 应用最外层容器，占满全屏 */
+#app {
+    width: 100%;
+    min-height: 100vh;
+}
+
+/* ========== 面板通用样式 ========== */
+/* 所有面板默认隐藏 */
+.panel {
+    display: none;
+    width: 100%;
+    min-height: 100vh;
+    padding: 30px 20px;
+}
+
+/* 被激活的面板才显示 */
+.panel.active {
+    display: block;
+}
+
+/* 内容容器，限制最大宽度并在大屏幕上居中，保持可读性 */
+.panel-content {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ========== 首页特殊处理：垂直居中 ========== */
+#homePanel .panel-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    text-align: center;
+}
+
+/* 主标题 */
+h1 {
+    font-size: 72px;
+    margin-bottom: 16px;
+    color: #b7472a;
+    /* 科广红鸟色，可以改成你喜欢的颜色 */
+    letter-spacing: 2px;
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #1e293b;
+}
+
+p {
+    font-size: 20px;
+    color: #475569;
+    margin-bottom: 32px;
+}
+
+/* 按钮组，用于首页和结果页 */
+.button-group {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* ========== 按钮样式 ========== */
+button {
+    background: #b7472a;
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 40px;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 鼠标悬停效果 */
+button:hover {
+    background: #a03d24;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* 禁用状态（上一页在第一页时） */
+button:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 次要按钮（返回首页、退出测试等） */
+button.secondary {
+    background: rgba(255, 255, 255, 0.8);
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+    backdrop-filter: blur(4px);
+}
+
+button.secondary:hover {
+    background: white;
+}
+
+/* ========== 答题页头部 ========== */
+.quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* 退出测试按钮特殊样式 */
+#exitQuizBtn {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    padding: 10px 20px;
+    font-size: 15px;
+    box-shadow: none;
+}
+
+#exitQuizBtn:hover {
+    background: rgba(255, 255, 255, 0.5);
+    color: #1e293b;
+    transform: none;
+}
+
+/* ========== 题目卡片 ========== */
+.question-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    /* 毛玻璃效果 */
+    border-radius: 24px;
+    padding: 28px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+}
+
+/* 题目文本 */
+.question-text {
+    font-weight: 600;
+    margin-bottom: 24px;
+    font-size: 20px;
+    line-height: 1.5;
+    color: #0f172a;
+}
+
+/* 选项列表，垂直排列 */
+.option-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* 单个选项 */
+.option-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 20px;
+    background: white;
+    border-radius: 20px;
+    border: 1.5px solid #e2e8f0;
+    cursor: pointer;
+    transition: 0.15s;
+    font-size: 17px;
+    line-height: 1.5;
+    color: #1e293b;
+}
+
+.option-item:hover {
+    border-color: #b7472a;
+    background: #fff5f2;
+}
+
+/* 被选中的选项高亮 */
+.option-item.selected {
+    border-color: #b7472a;
+    background: #fef0ec;
+    box-shadow: 0 4px 12px rgba(183, 71, 42, 0.1);
+}
+
+/* 单选按钮美化 */
+.option-item input[type="radio"] {
+    margin-top: 3px;
+    accent-color: #b7472a;
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+/* ========== 答题页底部 ========== */
+.quiz-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+    padding: 20px 0 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+#pageIndicator {
+    font-weight: 500;
+    color: #475569;
+    font-size: 16px;
+}
+
+#resultDetail {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #2c3e50;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 16px 18px;
+    border-radius: 20px;
+    margin-top: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+/* 图鉴网格 */
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+}
+
+.personality-card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e2e8f0;
+}
+
+.personality-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+    border-color: #b7472a;
+}
+
+.personality-card img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-bottom: 12px;
+}
+
+.personality-card h3 {
+    font-size: 18px;
+    color: #1e293b;
+}
+
+/* 详情页 */
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.detail-content {
+    background: white;
+    border-radius: 32px;
+    padding: 30px;
+}
+
+.detail-image {
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto 24px;
+    display: block;
+    border-radius: 24px;
+}
+
+.detail-name {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 16px;
+    color: #b7472a;
+}
+
+.detail-slogan {
+    font-size: 20px;
+    text-align: center;
+    color: #475569;
+    margin-bottom: 32px;
+    font-style: italic;
+}
+
+.detail-description {
+    font-size: 17px;
+    line-height: 1.8;
+    color: #1e293b;
+    background: #f8fafc;
+    padding: 24px;
+    border-radius: 20px;
+}
+
+/* 首页引导文案 */
+.intro-text {
+    max-width: 600px;
+    margin: 30px auto 40px;
+    text-align: center;
+    color: #475569;
+    font-size: 16px;
+    line-height: 1.8;
+}
+
+.intro-text p {
+    margin-bottom: 12px;
+}
+
+.intro-highlight {
+    font-size: 18px;
+    font-weight: 500;
+    color: #1e293b;
+    margin: 24px 0 16px;
+}
+
+.intro-ending {
+    font-style: italic;
+    color: #b7472a;
+    font-size: 17px;
+    margin-top: 8px;
+}
+
+/* 手机端适配 */
+@media (max-width: 600px) {
+    .intro-text {
+        font-size: 15px;
+        padding: 0 10px;
+    }
+
+    .intro-highlight {
+        font-size: 16px;
+    }
+}
