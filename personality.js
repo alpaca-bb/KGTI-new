@@ -147,6 +147,7 @@ const personalityCoreDimensions = {
     '自定义': null
 };
 
+
 // ---------- 描述文案 ----------
 const personalityDescriptions = {
     'DDL战神': '“没到截止线，我的大脑就没开机。别催，在写了，在写了，真的在写了。”',
