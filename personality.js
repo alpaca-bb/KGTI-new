@@ -5,8 +5,8 @@ const personalityVectors = {
     'DDL战神': [1, 2, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1],
     '卷心菜': [2, 0, 1, 1, 1, 1, 2, 1, 1, 0, 1, 1, 1, 1],
     '全能ACE': [2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 2],
-    '红鸟街溜子': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-    '进击的饿殍': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    '红鸟街溜子': [1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1],
+    '进击的饿殍': [2, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 0, 1, 2],
     '人机': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     '隐居的仙人': [0, 1, 1, 1, 0, 1, 0, 0, 0, 2, 1, 1, 0, 1],
     '观鸟达人': [1, 1, 1, 1, 1, 1, 0, 2, 1, 1, 1, 1, 1, 1],
@@ -15,7 +15,7 @@ const personalityVectors = {
     '人类观测师': [1, 1, 1, 1, 0, 2, 1, 2, 1, 1, 1, 1, 1, 1],
     '深夜哲人': [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 2, 1, 1],
     '预言家': [2, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 2, 2],
-    '假面影帝': [1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1],
+    '假面影帝': [1, 1, 1, 1, 0, 2, 1, 1, 1, 1, 1, 1, 1, 1],
     '摆渡人': [1, 1, 1, 1, 1, 2, 1, 1, 1, 0, 1, 0, 0, 2],
     '弄潮者': [2, 1, 2, 1, 2, 1, 2, 1, 1, 1, 2, 0, 1, 2],
     '孤勇者': [2, 1, 2, 1, 0, 2, 1, 1, 1, 1, 1, 2, 2, 2],
@@ -128,8 +128,8 @@ const personalityCoreDimensions = {
     'DDL战神': [1, 3, 8],
     '卷心菜': [0, 1, 6, 9],
     '全能ACE': [0, 2, 4, 11, 13],
-    '红鸟街溜子': [4, 6, 7],
-    '进击的饿殍': [1, 9, 10, 13],
+    '红鸟街溜子': [4, 7],
+    '进击的饿殍': [0,4, 9, 10,11, 13],
     '人机': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
     '隐居的仙人': [0, 4, 6, 7, 8, 9, 12],
     '观鸟达人': [7, 6],
@@ -138,7 +138,7 @@ const personalityCoreDimensions = {
     '人类观测师': [3, 4, 5, 12],
     '深夜哲人': [8, 11],
     '预言家': [0, 6, 11, 12, 13],
-    '假面影帝': [5],
+    '假面影帝': [4,5],
     '摆渡人': [5, 9, 11, 12, 13],
     '弄潮者': [0, 2, 3, 4, 6, 10, 11, 13],
     '孤勇者': [0, 2, 4, 5, 11, 12, 13],
@@ -203,35 +203,39 @@ function getPersonalityDetail(name) {
 }
 
 // ---------- 匹配算法（核心维度 + 特殊规则亲和加分） ----------
+// ---------- 匹配算法（核心维度 + 特殊规则亲和加分，公平处理不同数量核心维度） ----------
 function findBestMatch(userVector, userAnswers, threshold = 60, useCoreDimensions = true) {
     const distances = [];
-    const affinityBoost = 0.3; // 每条规则匹配后，距离乘以 (1 - 0.3) = 0.7，即打七折
+    const affinityBoost = 0.3; // 每条规则匹配后，距离乘以 (1 - 0.3) = 0.7
 
     for (const [name, vector] of Object.entries(personalityVectors)) {
-        // 1. 计算核心维度距离
+        // 1. 计算核心维度的均方根距离 (RMSD)
         let sumSq = 0;
         let effectiveDimCount = 14;
-        let maxPossibleDist = Math.sqrt(14 * 4);
 
         if (useCoreDimensions && personalityCoreDimensions[name]) {
             const coreDims = personalityCoreDimensions[name];
             effectiveDimCount = coreDims.length;
-            maxPossibleDist = Math.sqrt(effectiveDimCount * 4);
 
             for (let dim of coreDims) {
                 const diff = userVector[dim] - vector[dim];
                 sumSq += diff * diff;
             }
         } else {
+            // 全维度
             for (let i = 0; i < userVector.length; i++) {
                 const diff = userVector[i] - vector[i];
                 sumSq += diff * diff;
             }
         }
 
-        let distance = Math.sqrt(sumSq);
+        // 原始欧氏距离
+        let rawDistance = Math.sqrt(sumSq);
+        
+        // 转换为平均维度差异 (RMSD)，消除维度数量影响
+        let normalizedDistance = rawDistance / Math.sqrt(effectiveDimCount);
 
-        // 2. 特殊规则亲和：计算匹配的规则数量，每条规则让距离打折
+        // 2. 特殊规则亲和：匹配的规则数量越多，距离打折越多
         const rulesConfig = personalitySpecialRules[name];
         let matchedRuleCount = 0;
         if (rulesConfig && userAnswers) {
@@ -248,39 +252,62 @@ function findBestMatch(userVector, userAnswers, threshold = 60, useCoreDimension
             }
         }
 
-        // 应用折扣：每匹配一条规则，距离乘以 (1 - affinityBoost)
+        // 应用折扣：每条规则让归一化距离打七折
         if (matchedRuleCount > 0) {
-            distance = distance * Math.pow(1 - affinityBoost, matchedRuleCount);
+            normalizedDistance = normalizedDistance * Math.pow(1 - affinityBoost, matchedRuleCount);
         }
 
-        distances.push({ name, distance, maxPossibleDist, matchedRuleCount });
+        // 最大可能平均差异为 2（每个维度差异最大2）
+        const maxPossibleNormalizedDist = 2.0;
+
+        distances.push({
+            name,
+            rawDistance,
+            normalizedDistance,
+            maxPossibleDist: maxPossibleNormalizedDist,
+            matchedRuleCount,
+            effectiveDimCount
+        });
     }
 
-    distances.sort((a, b) => a.distance - b.distance);
+    // 按归一化距离从小到大排序
+    distances.sort((a, b) => a.normalizedDistance - b.normalizedDistance);
 
+    // 生成前三名，计算相似度（基于归一化距离）
     const topMatches = distances.slice(0, 3).map(item => {
-        const rawSimilarity = (1 - item.distance / item.maxPossibleDist) * 100;
+        const rawSimilarity = (1 - item.normalizedDistance / item.maxPossibleDist) * 100;
         const similarity = Math.max(0, Math.min(100, parseFloat(rawSimilarity.toFixed(1))));
         return {
             name: item.name,
-            distance: item.distance,
+            distance: item.normalizedDistance,      // 输出归一化距离
+            rawDistance: item.rawDistance,
             similarity: similarity,
-            matchedRules: item.matchedRuleCount
+            matchedRules: item.matchedRuleCount,
+            dimCount: item.effectiveDimCount
         };
     });
 
     let bestMatch = topMatches[0].name;
     const bestSimilarity = topMatches[0].similarity;
 
+    // 兜底：相似度过低则判定为自定义
     if (bestSimilarity < threshold) {
         bestMatch = '自定义';
         topMatches.unshift({
             name: '自定义',
             distance: 0,
+            rawDistance: 0,
             similarity: bestSimilarity,
-            matchedRules: 0
+            matchedRules: 0,
+            dimCount: 0
         });
     }
 
-    return { bestMatch, minDistance: distances[0].distance, topMatches };
+    return {
+        bestMatch,
+        minDistance: topMatches[0]?.distance || 0,
+        topMatches
+    };
 }
+
+    
