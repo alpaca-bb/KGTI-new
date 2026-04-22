@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GKTI · 科广人格测试</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- ========== 首页面板 ========== -->
+        <div id="homePanel" class="panel active">
+            <div class="panel-content">
+                <h1>KGTI</h1>
+                <div class="intro-text">
+                    <p>在港科广的每一个角落，都藏着一种独特的生活频率。</p>
+                    <p>有人昼伏夜出，有人漫游探索；有人在DDL前爆发宇宙，有人在红鸟广场观察人类。</p>
+                    <p>你或许也曾在深夜问过自己：我到底是卷心菜还是全能ACE？是隐居仙人还是进击的饿殍？</p>
+                    <p class="intro-highlight">仅需10分钟，KGTI将为你描绘一幅入木三分的画像——<br>不仅告诉你“你是谁”，更懂你“为什么这样活着”。</p>
+                    <p class="intro-ending">那种被深深理解的感觉，妙不可言。</p>
+                </div>
+                <div class="button-group">
+                    <button id="startTestBtn">开始测试</button>
+                    <button id="viewGalleryBtn">人格图鉴</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 人格图鉴面板 ========== -->
+        <div id="galleryPanel" class="panel">
+            <div class="panel-content">
+                <div class="gallery-header">
+                    <h2>人格图鉴</h2>
+                    <button id="backFromGalleryBtn" class="secondary">返回首页</button>
+                </div>
+                <div id="galleryGrid" class="gallery-grid">
+                    <!-- 由JS动态生成所有人格卡片 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 人格详情面板 ========== -->
+        <div id="detailPanel" class="panel">
+            <div class="panel-content">
+                <div class="detail-header">
+                    <button id="backToGalleryBtn" class="secondary">← 返回图鉴</button>
+                    <button id="startFromDetailBtn">开始测试</button>
+                </div>
+                <div id="detailContent" class="detail-content">
+                    <!-- 由JS动态填充 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 答题面板 ========== -->
+        <div id="quizPanel" class="panel">
+            <div class="panel-content">
+                <div class="quiz-header">
+                    <h2 id="moduleName">模块名称</h2>
+                    <button id="exitQuizBtn" class="secondary">退出测试</button>
+                </div>
+                <div id="questionsContainer"></div>
+                <div class="quiz-footer">
+                    <button id="prevModuleBtn" class="secondary" disabled>上一页</button>
+                    <span id="pageIndicator">第1/1模块</span>
+                    <button id="nextModuleBtn">下一页</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 结果面板 ========== -->
+        <div id="resultPanel" class="panel">
+            <div class="panel-content">
+                <img id="resultImage" src="" alt="人格图片"
+                    style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; margin: 0 auto 20px; display: block;">
+                <h2 id="resultPersonality">？？？</h2>
+                <p id="resultDesc">正在解码你的科广基因……</p>
+                <p id="resultSub" style="color:#64748b; margin-top: 10px;"></p>
+                <div id="resultDetail"
+                    style="margin-top: 20px; font-size: 16px; line-height: 1.6; color: #334155; text-align: left;">
+                </div>
+                <div class="button-group">
+                    <button id="restartBtn">重新测试</button>
+                    <button id="backHomeBtn" class="secondary">返回首页</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JS 文件引入 -->
+    <script src="questions.js"></script>
+    <script src="personality.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
